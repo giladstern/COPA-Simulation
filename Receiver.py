@@ -12,4 +12,9 @@ class Receiver:
     def timestep(self):
         num_messages = min(self.serve_per_timestep, len(self.buffer))
         for i in range(num_messages):
-            self.simulator.send_message(self.buffer.pop())
+            message = self.buffer.pop(0)
+            message.in_buffer = False
+            self.simulator.send_message(message)
+
+        for message in self.buffer:
+            message.timestep()

@@ -6,7 +6,7 @@ from collections import deque
 class Simulator:
     def __init__(self, buff_size, serve_per_timestep, ttl, sender_num, long_time):
         self.dest = Receiver(self, buff_size, serve_per_timestep)
-        self.senders = [Sender(self, self.dest, long_time) for i in range(sender_num)]
+        self.senders = [Sender(self, self.dest, long_time, ttl) for i in range(sender_num)]
         self.messages = deque()
         self.ttl = ttl
 
@@ -14,7 +14,7 @@ class Simulator:
         self.senders.append(sender)
 
     def timestep(self):
-        for i in len(self.messages):
+        for i in range(len(self.messages)):
             message = self.messages.popleft()
             message.timestep()
             if message.ttl > 0:
@@ -23,6 +23,12 @@ class Simulator:
             sender.timestep()
         self.dest.timestep()
 
-    def add_message(self, message):
+    def send_message(self, message):
         message.ttl = self.ttl
         self.messages.append(message)
+
+
+sim = Simulator(1000, 2, 50, 1, 5000)
+
+for i in range(500000):
+    sim.timestep()

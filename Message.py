@@ -15,8 +15,10 @@ class Message:
             self.ttl -= 1
 
             if self.ttl <= 0:
-                self.dest.receive(self)
+                self.enqueue()
 
     def enqueue(self):
         self.in_buffer = True
         self.dest, self.source = self.source, self.dest
+
+        self.source.receive(self)
