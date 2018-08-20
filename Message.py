@@ -7,6 +7,7 @@ class Message:
         self.time_alive = 0
         self.in_buffer = False
         self.received = -1
+        self.nearly_empty = None
 
     def timestep(self):
         self.time_alive += 1
