@@ -3,9 +3,10 @@ from collections import deque
 
 
 class Sender:
-    def __init__(self, simulator, dest, long_time, ttl):
+    def __init__(self, simulator, dest, long_time, ttl, id):
+        self.id = id
         self.ttl = ttl
-        self.cwnd = 1
+        self.cwnd = 100
         self.RTT_st = 2 * ttl
         self.RTT_min = 2 * ttl
         self.v = 1
@@ -28,6 +29,8 @@ class Sender:
         self.dupack = 0
         self.expected_ack = 1
         # TODO: Decide if we want timeouts
+        self.d = 1
+
 
     def send_message(self):
         message = Message(self, self.dest, self.ack_num)
@@ -44,7 +47,7 @@ class Sender:
         self.partial_send -= num_messages
 
     def competitive_timestep(self):
-        for i in range(max(0,self.cwnd - self.messages_in_air)):
+        for i in range(max(0,int(self.cwnd) - self.messages_in_air)):
             self.send_message()
 
     def timestep(self):
@@ -53,26 +56,33 @@ class Sender:
         while len(self.last_rtts) > 0 and self.last_rtts[0].received < self.time - self.long_time:
             self.last_rtts.popleft()
 
-        filtered_st = filter(lambda m: m.received >= self.time - self.srtt / 2, self.last_rtts)
-        filtered_max = filter(lambda m: m.received >= self.time - 4 * self.srtt, self.last_rtts)
-        self.RTT_st = min(map(lambda m: m.time_alive, filtered_st), default=self.RTT_st)
-        self.RTT_min = min(map(lambda m: m.time_alive, self.last_rtts), default=self.RTT_min)
-        self.RTT_max = max(map(lambda m: m.time_alive, filtered_max), default=self.RTT_max)
+        # TODO: What about messages "ignored" in competitive mode?
+        # filtered_st = filter(lambda m: m.received >= self.time - self.srtt / 2, self.last_rtts)
+        # filtered_max = filter(lambda m: m.received >= self.time - 4 * self.srtt, self.last_rtts)
+        # self.RTT_st = min(map(lambda m: m.time_alive, filtered_st), default=self.RTT_st)
+        # self.RTT_min = min(map(lambda m: m.time_alive, self.last_rtts), default=self.RTT_min)
+        # self.RTT_max = max(map(lambda m: m.time_alive, filtered_max), default=self.RTT_max)
+
+        if self.last_rtts:
+            self.RTT_st = self.RTT_min = self.RTT_max = self.last_rtts[-1].time_alive
 
         long_delay = True
-        for i in range(len(self.last_rtts)-1, -1, -1):
-            message = self.last_rtts[i]
-            if message.received < self.time - 5 * self.srtt:
-                break
-            if message.nearly_empty:
+        for message in self.last_rtts:
+            rtt = message.time_alive
+            if long_delay and message.received >= self.time - 5 * self.srtt and message.nearly_empty:
                 long_delay = False
-                break
+            if rtt < self.RTT_min:
+                self.RTT_min = rtt
+            if message.received >= self.time - self.srtt / 2 and rtt < self.RTT_st:
+                self.RTT_st = rtt
+            if message.received >= self.time -4 * self.srtt and rtt > self.RTT_st:
+                self.RTT_max = rtt
 
         # Here we are just waiting for stabilization.
         if self.time >= 5000:
             if long_delay:
                 self.competitive = True
-                print("Competitive in time: %d", self.time)
+                self.simulator.log_write("Competitive in time: " + str(self.time))
             else:
                 self.competitive = False
 
@@ -82,13 +92,9 @@ class Sender:
             self.default_timestep()
         self.time += 1
 
-        if not self.time % 100:
-            print(self.cwnd, self.v)
-
     def receive(self, message):
         message.received = self.time
         self.last_rtts.append(message)
-        self.messages_in_air -= 1
 
         # Update the RTT statistics.
         self.srtt = 0.1 * message.time_alive + 0.9 * self.srtt
@@ -119,11 +125,23 @@ class Sender:
 
             if lam <= lam_t:
                 self.cwnd += self.v / (self.delta * self.cwnd)
+                if self.d == -1:
+                    self.log_write("Minimum, cwnd = " + str(self.cwnd) + " time = " +
+                                   str(self.time))
+                    self.d = 1
             else:
                 self.cwnd = max(self.cwnd - self.v / (self.delta * self.cwnd), 1)
+                if self.d == 1:
+                    self.log_write("Maximum, cwnd = " + str(self.cwnd) + " time = " +
+                                   str(self.time))
+                    self.d = -1
 
         else:
             self.cwnd += self.v / (self.delta * self.cwnd)
+            if self.d == -1:
+                self.log_write("Minimum, cwnd = " + str(self.cwnd) + " time = " +
+                               str(self.time))
+                self.d = 1
 
         # This whole block is for updating v.
         # This didn't really work with 3 rounds. Worked alright with 5 rounds.
@@ -142,6 +160,7 @@ class Sender:
 
             if total == 4 or total == -4:
                 self.v *= 2
+                self.log_write("Doubled v, v=" + str(self.v) + ", in time " + str(self.time))
             else:
                 self.v = 1
 
@@ -159,3 +178,6 @@ class Sender:
                 self.dupack = 0
                 self.cwnd *= 0.5
                 self.expected_ack = self.ack_num + 1
+
+    def log_write(self,string):
+        self.simulator.log_write("ID " + str(self.id) + ": " + string + "\n")
