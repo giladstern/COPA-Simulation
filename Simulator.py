@@ -39,34 +39,44 @@ class Simulator:
         self.log.write(string)
 
 
-for i in range(1):
-    time = 100000
-    buff = 1000
-    serve = 2
-    ttl = 50
-    num_senders = 2
-    long = 5000
+if __name__ == "__main__":
+    for i in range(1):
+        time = 100000
+        t1 = 10000
+        t2 = time - t1
+        buff = 1000
+        serve = 2
+        ttl = 50
+        num_senders = 1
+        long = 5000
 
-    sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
+        sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
+        sender2 = Sender(sim, sim.dest, long, ttl, 1, 1)
 
-    for i in range(time):
-        sim.timestep()
+        for i in range(t1):
+            sim.timestep()
+            sender2.plot.append(0)
 
-    sim.log.close()
+        sim.add_sender(sender2)
 
-    y = [i for i in range(1, time + 1)]
+        for i in range(t2):
+            sim.timestep()
 
-    for sender in sim.senders:
-        plt.plot(y, sender.plot, label="Sender " + str(sender.id))
+        sim.log.close()
 
-    x = sum(np.array(sender.plot) for sender in sim.senders)
-    plt.plot(y, x, label="Sum")
+        y = [i for i in range(1, time + 1)]
 
-    x_max = np.array([max(sender.plot[i] for sender in sim.senders) for i in range(time)])
-    x_min = np.array([min(sender.plot[i] for sender in sim.senders) for i in range(time)])
-    plt.plot(y, x_max - x_min, label="Max Difference")
+        for sender in sim.senders:
+            plt.plot(y, sender.plot, label="Sender " + str(sender.id))
 
-    plt.legend()
-    plt.show()
+        x = sum(np.array(sender.plot) for sender in sim.senders)
+        plt.plot(y, x, label="Sum")
 
-    print(x_max[-1]-x_min[-1])
+        x_max = np.array([max(sender.plot[i] for sender in sim.senders) for i in range(time)])
+        x_min = np.array([min(sender.plot[i] for sender in sim.senders) for i in range(time)])
+        plt.plot(y, x_max - x_min, label="Max Difference")
+
+        plt.legend()
+        plt.show()
+
+        print(x_max[-1]-x_min[-1])
