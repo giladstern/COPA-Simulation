@@ -3,10 +3,10 @@ from collections import deque
 
 
 class Sender:
-    def __init__(self, simulator, dest, long_time, ttl, id):
+    def __init__(self, simulator, dest, long_time, ttl, id, cwnd):
         self.id = id
         self.ttl = ttl
-        self.cwnd = 100
+        self.cwnd = cwnd
         self.RTT_st = 2 * ttl
         self.RTT_min = 2 * ttl
         self.v = 1
@@ -24,16 +24,16 @@ class Sender:
         self.srtt = 2 * ttl
         self.time = 1
         self.last_in_window = 1
-        self.prev_cwnd = 1
+        self.prev_cwnd = self.cwnd
         self.RTT_max = 2 * ttl
         self.dupack = 0
         self.expected_ack = 1
         # TODO: Decide if we want timeouts
         self.d = 1
-
+        self.plot = []
 
     def send_message(self):
-        message = Message(self, self.dest, self.ack_num)
+        message = Message(self, self.dest, self.ack_num, self.prev_cwnd)
         self.ack_num += 1
         self.simulator.send_message(message)
 
@@ -47,7 +47,7 @@ class Sender:
         self.partial_send -= num_messages
 
     def competitive_timestep(self):
-        for i in range(max(0,int(self.cwnd) - self.messages_in_air)):
+        for i in range(max(0, int(self.cwnd) - self.messages_in_air)):
             self.send_message()
 
     def timestep(self):
@@ -75,14 +75,14 @@ class Sender:
                 self.RTT_min = rtt
             if message.received >= self.time - self.srtt / 2 and rtt < self.RTT_st:
                 self.RTT_st = rtt
-            if message.received >= self.time -4 * self.srtt and rtt > self.RTT_st:
+            if message.received >= self.time - 4 * self.srtt and rtt > self.RTT_st:
                 self.RTT_max = rtt
 
         # Here we are just waiting for stabilization.
         if self.time >= 5000:
             if long_delay:
                 self.competitive = True
-                self.simulator.log_write("Competitive in time: " + str(self.time))
+                self.log_write("Competitive in time: " + str(self.time))
             else:
                 self.competitive = False
 
@@ -90,6 +90,8 @@ class Sender:
             self.competitive_timestep()
         else:
             self.default_timestep()
+
+        self.plot.append(self.cwnd)
         self.time += 1
 
     def receive(self, message):
@@ -143,6 +145,7 @@ class Sender:
                                str(self.time))
                 self.d = 1
 
+
         # This whole block is for updating v.
         # This didn't really work with 3 rounds. Worked alright with 5 rounds.
         # With 3 it very consistently had a single jump to 2 and then back to 1.
@@ -179,5 +182,5 @@ class Sender:
                 self.cwnd *= 0.5
                 self.expected_ack = self.ack_num + 1
 
-    def log_write(self,string):
+    def log_write(self, string):
         self.simulator.log_write("ID " + str(self.id) + ": " + string + "\n")

@@ -1,5 +1,5 @@
 class Message:
-    def __init__(self, source, dest, ack_num):
+    def __init__(self, source, dest, ack_num, cwnd):
         self.source = source
         self.dest = dest
         self.ack_num = ack_num
@@ -8,6 +8,7 @@ class Message:
         self.in_buffer = False
         self.received = -1
         self.nearly_empty = None
+        self.cwnd = cwnd
 
     def timestep(self):
         self.time_alive += 1
