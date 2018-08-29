@@ -35,12 +35,12 @@ class Simulator:
         message.ttl = self.ttl
         self.messages.append(message)
 
-    def log_write(self, str):
-        self.log.write(str)
+    def log_write(self, string):
+        self.log.write(string)
 
 
-for i in range(5):
-    time = 25000
+for i in range(1):
+    time = 100000
     buff = 1000
     serve = 2
     ttl = 50
@@ -68,3 +68,5 @@ for i in range(5):
 
     plt.legend()
     plt.show()
+
+    print(x_max[-1]-x_min[-1])

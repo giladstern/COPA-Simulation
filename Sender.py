@@ -145,7 +145,6 @@ class Sender:
                                str(self.time))
                 self.d = 1
 
-
         # This whole block is for updating v.
         # This didn't really work with 3 rounds. Worked alright with 5 rounds.
         # With 3 it very consistently had a single jump to 2 and then back to 1.
