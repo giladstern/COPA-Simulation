@@ -41,9 +41,9 @@ class Simulator:
 
 if __name__ == "__main__":
     for i in range(1):
-        time = 100000
+        time = 200000
         t1 = 10000
-        t2 = time - t1
+        t2 = time
         buff = 1000
         serve = 2
         ttl = 50
@@ -51,13 +51,17 @@ if __name__ == "__main__":
         long = 5000
 
         sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
-        sender2 = Sender(sim, sim.dest, long, ttl, 1, 1)
+        extras = [Sender(sim, sim.dest, long, ttl, 1, i) for i in range(1, 4)]
 
-        for i in range(t1):
-            sim.timestep()
-            sender2.plot.append(0)
+        for i in range(len(extras)):
+            for j in range(t1):
+                sim.timestep()
+                for sender in extras:
+                    sender.plot.append(0)
+            sim.add_sender(extras[0])
+            extras.pop(0)
 
-        sim.add_sender(sender2)
+            t2 -= t1
 
         for i in range(t2):
             sim.timestep()
