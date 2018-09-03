@@ -42,16 +42,16 @@ class Simulator:
 if __name__ == "__main__":
     for i in range(1):
         time = 100000
-        t1 = 10000
+        t1 = 20000
         t2 = time
-        buff = 1000
+        buff = 100#0
         serve = 2
         ttl = 50
-        num_senders = 1
+        num_senders = 2
         long = 5000
 
         sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
-        extras = [Sender(sim, sim.dest, long, ttl, i, 1) for i in range(1, 3)]
+        extras = [Sender(sim, sim.dest, long, ttl, i, 1) for i in range(1, 2)]
 
         for i in range(len(extras)):
             for j in range(t1):
@@ -65,6 +65,10 @@ if __name__ == "__main__":
 
         for i in range(t2):
             sim.timestep()
+
+        # for i in range(time):
+        #     sim.timestep()
+        #     print(sim.senders[0].cwnd, sim.senders[1].cwnd)
 
         sim.log.close()
 

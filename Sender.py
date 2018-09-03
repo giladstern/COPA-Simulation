@@ -17,7 +17,7 @@ class Sender:
         self.rate = 1
         self.ack_num = 1
         self.simulator = simulator
-        self.competitive = False
+        self.competitive = True #False
         self.messages_in_air = 0
         self.long_time = long_time
         self.partial_send = 1
@@ -79,7 +79,7 @@ class Sender:
                 self.RTT_max = rtt
 
         # Here we are just waiting for stabilization.
-        if self.time >= 5000:
+        if self.time >= 20000:
             if long_delay:
                 self.competitive = True
                 self.log_write("Competitive in time: " + str(self.time))
@@ -175,6 +175,7 @@ class Sender:
             self.cwnd += 1 / (self.delta * self.cwnd)
             self.dupack = 0
         elif message.ack_num > self.expected_ack:
+            print(message.ack_num,self.expected_ack)
             self.dupack += 1
             if self.dupack == 3:
                 self.dupack = 0

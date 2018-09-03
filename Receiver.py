@@ -1,4 +1,4 @@
-from random import shuffle
+from random import shuffle, choice
 
 class Receiver:
     def __init__(self, simulator, buff_size, serve_per_timestep):
@@ -6,19 +6,30 @@ class Receiver:
         self.buff_size = buff_size
         self.serve_per_timestep = serve_per_timestep
         self.buffer = []
-        self.current_messages = []
+        self.current_messages = dict()
 
     def receive(self, message):
-        self.current_messages.append(message)
+        # self.current_messages.append(message)
+        if message.dest not in self.current_messages:
+            self.current_messages[message.dest] = [message]
+        else:
+            self.current_messages[message.dest].append(message)
 
     def timestep(self):
-        shuffle(self.current_messages)
-
-        for message in self.current_messages:
-            if len(self.buffer) < self.buff_size:
-                self.buffer.append(message)
-            else:
-                self.simulator.log_write("Message #" + str(message.ack_num) + " dropped!\n")
+        keys = list(self.current_messages.keys())
+        while keys and len(self.buffer) < self.buff_size:
+            key = choice(keys)
+            self.buffer.append(self.current_messages[key].pop(0))
+            if not self.current_messages[key]:
+                keys.remove(key)
+        self.current_messages.clear()
+        # shuffle(self.current_messages)
+        #
+        # for message in self.current_messages:
+        #     if len(self.buffer) < self.buff_size:
+        #         self.buffer.append(message)
+        #     else:
+        #         self.simulator.log_write("Message #" + str(message.ack_num) + " dropped!\n")
 
         self.current_messages.clear()
 
