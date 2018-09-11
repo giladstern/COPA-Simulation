@@ -22,7 +22,6 @@ class Receiver:
             self.buffer.append(self.current_messages[key].pop(0))
             if not self.current_messages[key]:
                 keys.remove(key)
-        self.current_messages.clear()
         # shuffle(self.current_messages)
         #
         # for message in self.current_messages:

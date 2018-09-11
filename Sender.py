@@ -17,7 +17,7 @@ class Sender:
         self.rate = 1
         self.ack_num = 1
         self.simulator = simulator
-        self.competitive = True #False
+        self.competitive = False
         self.messages_in_air = 0
         self.long_time = long_time
         self.partial_send = 1
@@ -184,3 +184,12 @@ class Sender:
 
     def log_write(self, string):
         self.simulator.log_write("ID " + str(self.id) + ": " + string + "\n")
+
+
+class CompetitiveSender(Sender):
+    def default_receive(self, message):
+        self.competitive_receive(message)
+    def default_timestep(self):
+        self.competitive_timestep()
+    def log_write(self, string):
+        pass

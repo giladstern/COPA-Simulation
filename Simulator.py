@@ -1,5 +1,5 @@
 from Receiver import Receiver
-from Sender import Sender
+from Sender import Sender, CompetitiveSender
 from collections import deque
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,6 +10,8 @@ class Simulator:
         self.log = open(path, "w")
         self.dest = Receiver(self, buff_size, serve_per_timestep)
         self.senders = [Sender(self, self.dest, long_time, ttl, i, ttl/sender_num) for i in range(sender_num)]
+        # self.senders += [CompetitiveSender(self, self.dest, long_time, ttl, i + sender_num, ttl/sender_num)
+        #                  for i in range(sender_num)]
         self.messages = deque()
         self.ttl = ttl
         self.time = 0
@@ -41,17 +43,17 @@ class Simulator:
 
 if __name__ == "__main__":
     for i in range(1):
-        time = 100000
+        time = 200000
         t1 = 20000
         t2 = time
         buff = 100#0
         serve = 2
         ttl = 50
-        num_senders = 2
+        num_senders = 1
         long = 5000
 
         sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
-        extras = [Sender(sim, sim.dest, long, ttl, i, 1) for i in range(1, 2)]
+        extras = [CompetitiveSender(sim, sim.dest, long, ttl, i, 1) for i in range(1, 2)]
 
         for i in range(len(extras)):
             for j in range(t1):
@@ -68,7 +70,6 @@ if __name__ == "__main__":
 
         # for i in range(time):
         #     sim.timestep()
-        #     print(sim.senders[0].cwnd, sim.senders[1].cwnd)
 
         sim.log.close()
 
