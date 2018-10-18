@@ -43,17 +43,17 @@ class Simulator:
 
 if __name__ == "__main__":
     for i in range(1):
-        time = 200000
+        time = 100000
         t1 = 20000
         t2 = time
         buff = 100#0
         serve = 2
         ttl = 50
-        num_senders = 1
+        num_senders = 0
         long = 5000
 
         sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
-        extras = [CompetitiveSender(sim, sim.dest, long, ttl, i, 1) for i in range(1, 2)]
+        extras = [CompetitiveSender(sim, sim.dest, long, ttl, i, 1) for i in range(1, 3)]
 
         for i in range(len(extras)):
             for j in range(t1):

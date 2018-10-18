@@ -187,9 +187,15 @@ class Sender:
 
 
 class CompetitiveSender(Sender):
-    def default_receive(self, message):
+    def receive(self, message):
+        message.received = self.time
         self.competitive_receive(message)
-    def default_timestep(self):
+
+    def timestep(self):
+        self.messages_in_air = self.ack_num - self.expected_ack
         self.competitive_timestep()
+        self.plot.append(self.cwnd)
+        self.time += 1
+
     def log_write(self, string):
         pass
