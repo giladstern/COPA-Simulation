@@ -43,15 +43,15 @@ class Simulator:
 
 if __name__ == "__main__":
     for i in range(1):
-        time = 70000
+        time = 40000
         t1 = 10000
         t2 = time - t1
         buff = 200#0
         serve = 2
         ttl = 10
-        num_senders = 2
+        num_senders = 1
         extra_senders = 1
-        long = 5000
+        long = 1000
 
         sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
         extras = [CompetitiveSender(sim, sim.dest, long, ttl, num_senders + i, 1) for i in range(extra_senders)]
@@ -82,17 +82,21 @@ if __name__ == "__main__":
 
         sim.log.close()
 
+        for sender in extras:
+            sim.senders.append(sender)
+
         y = [i for i in range(1, time + 1)]
 
         for sender in sim.senders:
             plt.plot(y, sender.plot, label="Sender " + str(sender.id))
 
-        x = sum(np.array(sender.plot) for sender in sim.senders)
-        plt.plot(y, x, label="Sum")
 
-        x_max = np.array([max(sender.plot[i] for sender in sim.senders) for i in range(time)])
-        x_min = np.array([min(sender.plot[i] for sender in sim.senders) for i in range(time)])
-        plt.plot(y, x_max - x_min, label="Max Difference")
+        # x = sum(np.array(sender.plot) for sender in sim.senders)
+        # plt.plot(y, x, label="Sum")
+        #
+        # x_max = np.array([max(sender.plot[i] for sender in sim.senders) for i in range(time)])
+        # x_min = np.array([min(sender.plot[i] for sender in sim.senders) for i in range(time)])
+        # plt.plot(y, x_max - x_min, label="Max Difference")
 
         plt.legend()
         plt.show()

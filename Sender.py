@@ -79,11 +79,13 @@ class Sender:
                 self.RTT_max = rtt
 
         # Here we are just waiting for stabilization.
-        if self.time >= 20000:
+        if self.time >= 10000:
             if long_delay:
+                self.delta = 0.25
                 self.competitive = True
                 self.log_write("Competitive in time: " + str(self.time))
             else:
+                self.delta = 0.5
                 self.competitive = False
 
         if self.competitive:
