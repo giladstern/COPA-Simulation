@@ -43,17 +43,18 @@ class Simulator:
 
 if __name__ == "__main__":
     for i in range(1):
-        time = 100000
-        t1 = 20000
-        t2 = time
-        buff = 100#0
+        time = 70000
+        t1 = 10000
+        t2 = time - t1
+        buff = 200#0
         serve = 2
-        ttl = 50
-        num_senders = 0
+        ttl = 10
+        num_senders = 2
+        extra_senders = 1
         long = 5000
 
         sim = Simulator(buff, serve, ttl, num_senders, long, "logfile")
-        extras = [CompetitiveSender(sim, sim.dest, long, ttl, i, 1) for i in range(1, 3)]
+        extras = [CompetitiveSender(sim, sim.dest, long, ttl, num_senders + i, 1) for i in range(extra_senders)]
 
         for i in range(len(extras)):
             for j in range(t1):
@@ -67,6 +68,14 @@ if __name__ == "__main__":
 
         for i in range(t2):
             sim.timestep()
+
+        for i in range(extra_senders):
+            extras.append(sim.senders.pop())
+
+        for i in range(t1):
+            sim.timestep()
+            for sender in extras:
+                sender.plot.append(0)
 
         # for i in range(time):
         #     sim.timestep()
