@@ -97,8 +97,8 @@ if __name__ == "__main__":
         # x_max = np.array([max(sender.plot[i] for sender in sim.senders) for i in range(time)])
         # x_min = np.array([min(sender.plot[i] for sender in sim.senders) for i in range(time)])
         # plt.plot(y, x_max - x_min, label="Max Difference")
+        # print(x_max[-1]-x_min[-1])
 
         plt.legend()
         plt.show()
 
-        print(x_max[-1]-x_min[-1])
